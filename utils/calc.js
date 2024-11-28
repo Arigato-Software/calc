@@ -3,6 +3,7 @@ export class Calc {
         this.expression = ""; // Строка для отображения выражения
         this.result = "";     // Строка для отображения результата
         this.currentInput = ""; // Текущее вводимое число
+        this.replacement = false; // Флаг замены вводимого значения после выполнения унарной операции
         this.memory = "";    // Память калькулятора
     }
 
@@ -21,16 +22,30 @@ export class Calc {
         if (Math.abs(value) > 999999999999999) {
             return 'Overflow';
         }
+        
+        // Округляем результат до 14 значащих цифр
         if (value.toString().indexOf('e') > -1) {
             value = this.trimTrailingZeros(value.toFixed(13));
         } else if (Math.abs(value).toString().length > 15) {
-            const point = value.toString().indexOf('.');
-            if (point > -1 && point < 15) {
-                const count = 14 - point;
-                const offset = Math.pow(10, count);
-                value = Math.round(value * offset) / offset;
-            } else {
-                return 'Overflow';
+            value = this.trimTrailingZeros(value.toPrecision(14));
+            if (Math.abs(value).toString().length == 15){
+                value = value.toString();
+                // Исправляем неточность вычислений
+                if (value.endsWith("01") || value.endsWith("02")){
+                    for (let i = value.length - 2; i >= 0; i--){
+                        if (!["-", ".", "0"].includes(value[i])){
+                            value = value.slice(0, i + 1);
+                            break;
+                        }
+                    }
+                } else if (value.endsWith("9") || value.endsWith("98")){
+                    for (let i = value.length - 2; i >= 0; i--){
+                        if (!["-", ".", "9"].includes(value[i])){
+                            value = value.slice(0, i) + (parseInt(value[i]) + 1).toString();
+                            break;
+                        }
+                    }
+                }
             }
         }
         return value.toString();
@@ -55,13 +70,14 @@ export class Calc {
         if (this.memory && !isNaN(this.memory)) {
             if (this.result) this.clear();
             this.replaceValue(this.memory);
+            this.replacement = true;
         }
     }
 
     // Метод MS (Memory Store) — сохраняет текущий ввод в память
     memoryStore() {
         const input = this.getCurrentInput();
-        if (input) {
+        if (input !== "") {
             this.memory = input.toString();
         }
     }
@@ -74,7 +90,7 @@ export class Calc {
     // Метод M+ (Memory Add) — добавляет текущее значение в память
     memoryAdd() {
         const input = this.getCurrentInput();
-        if (input && !isNaN(this.memory)) {
+        if (input !== "" && !isNaN(this.memory)) {
             const memory = this.memory ? parseFloat(this.memory) : 0;
             this.memory = this.getStringValue(memory + input);
         }
@@ -83,27 +99,37 @@ export class Calc {
     // Метод M- (Memory Subtract) — вычитает текущее значение из памяти
     memorySubtract() {
         const input = this.getCurrentInput();
-        if (input && !isNaN(this.memory)) {
+        if (input !== "" && !isNaN(this.memory)) {
             const memory = this.memory ? parseFloat(this.memory) : 0;
             this.memory = this.getStringValue(memory - input);
         }
     }
 
     enterDigit(digit) {
-        if (isNaN(this.currentInput) && this.currentInput !== "-") return;
+        if (isNaN(this.currentInput) && this.currentInput !== "-" || isNaN(this.result)) return;
         if (this.result) this.clear();
+        if (this.replacement){
+            this.replaceValue(digit);
+            this.replacement = false;
+            return;
+        }
         if (this.currentInput === "0" || this.currentInput === "-0") {
             this.backspace();
         }
-        if (Math.abs(this.currentInput).toString().length < 15) {
+        if (this.currentInput.length < 15 || this.currentInput.length < 16 && this.currentInput.startsWith("-")) {
             this.currentInput += digit;
             this.expression += digit;
         }
     }
 
     enterDecimal() {
-        if (isNaN(this.currentInput) && this.currentInput !== "-") return;
+        if (isNaN(this.currentInput) && this.currentInput !== "-" || isNaN(this.result)) return;
         if (this.result) this.clear();
+        if (this.replacement){
+            this.replaceValue("0.");
+            this.replacement = false;
+            return;
+        }
         if (!this.currentInput.includes(".")) {
             if (!this.currentInput || this.currentInput === "-") {
                 this.currentInput += "0";
@@ -159,6 +185,7 @@ export class Calc {
 
         this.expression += " ";
         this.result = "";
+        this.replacement = false;
     }
 
     // Метод для вычисления квадратного корня
@@ -171,6 +198,7 @@ export class Calc {
         } else {
             this.result = sqrtValue;
         }
+        this.replacement = true;
     }
 
     sqr() {
@@ -182,6 +210,7 @@ export class Calc {
         } else {
             this.result = sqrValue;
         }
+        this.replacement = true;
     }
 
     reciprocal() {
@@ -193,6 +222,7 @@ export class Calc {
         } else {
             this.result = reciprocalValue;
         }
+        this.replacement = true;
     }
 
     // Метод для вычисления процента
@@ -216,6 +246,7 @@ export class Calc {
         if (this.currentInput) {
             // Заменяем currentInput на вычисленный процент
             this.replaceValue(percentValue);
+            this.replacement = true;
         } else {
             this.result = percentValue;
         }
@@ -264,6 +295,7 @@ export class Calc {
             this.result = "Error";
         }
         this.currentInput = "";
+        this.replacement = false;
     }
 
     // Метод для сброса
@@ -271,6 +303,7 @@ export class Calc {
         this.expression = "";
         this.result = "";
         this.currentInput = "";
+        this.replacement = false;
     }
 
     lastOperand() {
@@ -288,8 +321,9 @@ export class Calc {
     // Метод для стирания последней введенной цифры
     backspace() {
         if (this.currentInput) {
-            if (isNaN(this.currentInput)) {
+            if (isNaN(this.currentInput) || this.replacement) {
                 this.clearLastNumber();
+                this.replacement = false;
                 return;
             }
             // Удаляем последнюю цифру из currentInput
@@ -313,6 +347,7 @@ export class Calc {
         } else {
             this.lastOperand();
         }
+        this.replacement = false;
     }
 
     evaluateExpression(expr) {

@@ -26,12 +26,14 @@ export class UI {
             expression: '',
             result: '',
             currentInput: '',
+            replacement: false,
             memory: '',
             ...storage
         }
         calc.expression = this.storage.expression;
         calc.result = this.storage.result;
         calc.currentInput = this.storage.currentInput;
+        calc.replacement =  this.storage.replacement;
         calc.memory = this.storage.memory;
     }
 
@@ -39,6 +41,7 @@ export class UI {
         this.storage.expression = calc.expression;
         this.storage.result = calc.result;
         this.storage.currentInput = calc.currentInput;
+        this.storage.replacement = calc.replacement;
         this.storage.memory = calc.memory;
         const localStorage = new LocalStorage();
         localStorage.setItem('calc', JSON.stringify(this.storage));

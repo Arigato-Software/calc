@@ -127,10 +127,10 @@ export const params = {
           click: () => calc.sqrt(),
         },
         {
-          text: '1/x',
+          text: 'ₓ²',
           color: 0x606060,
           text_size: px(23),
-          click: () => calc.reciprocal(),
+          click: () => calc.sqr(),
         },
       ],
       [
@@ -180,10 +180,9 @@ export const params = {
           click: () => calc.percent(),
         },
         {
-          text: 'mod',
+          text: 'ₓʸ',
           color: 0x606060,
-          text_size: px(23),
-          click: () => calc.enterOperation("%"),
+          click: () => calc.enterOperation("^"),
         },
       ],
       [
@@ -234,9 +233,10 @@ export const params = {
           click: () => calc.calculate(),
         },
         {
-          text: 'ₓʸ',
+          text: '1/x',
           color: 0x606060,
-          click: () => calc.enterOperation("^"),
+          text_size: px(23),
+          click: () => calc.reciprocal(),
         },
 
       ],
@@ -279,10 +279,10 @@ export const params = {
         },
         null,
         {
-          text: 'ₓ²',
+          text: 'mod',
           color: 0x606060,
           text_size: px(23),
-          click: () => calc.sqr(),
+          click: () => calc.enterOperation("%"),
         },
 
       ],

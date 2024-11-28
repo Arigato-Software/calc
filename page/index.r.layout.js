@@ -278,13 +278,7 @@ export const params = {
           click: () => calc.enterOperation("/"),
         },
         null,
-        {
-          text: 'ₓ²',
-          color: 0x606060,
-          text_size: px(23),
-          click: () => calc.sqr(),
-        },
-
+        null,
       ],
 
     ],
