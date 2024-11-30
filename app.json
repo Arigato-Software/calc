@@ -45,11 +45,11 @@
     }
   },
   "i18n": {
-    "en-US": {
-      "appName": "Calculator"
-    },
     "ru-RU": {
       "appName": "Калькулятор"
+    },
+    "en-US": {
+      "appName": "Calculator"
     }
   },
   "defaultLanguage": "en-US"
