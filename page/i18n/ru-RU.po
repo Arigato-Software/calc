@@ -1,0 +1,11 @@
+msgid "help"
+msgstr "Калькулятор v1.0.2\n© Arigato Software\n2024"
+
+msgid "memory"
+msgstr "M"
+
+msgid "error"
+msgstr "Ошибка"
+
+msgid "overflow"
+msgstr "Переполнение"

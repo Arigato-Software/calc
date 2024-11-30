@@ -6,14 +6,15 @@
     "appType": "app",
     "version": {
       "code": 1,
-      "name": "1.0.1"
+      "name": "1.0.2"
     },
     "icon": "icon.png",
     "vender": "Arigato Software",
     "description": "Calculator application"
   },
   "permissions": [
-    "device:os.local_storage"
+    "device:os.local_storage",
+    "data:os.device.info"
   ],
   "runtime": {
     "apiVersion": {

@@ -1,7 +1,10 @@
-import { createWidget, widget, prop, getTextLayout } from '@zos/ui'
-import { onGesture, GESTURE_LEFT, GESTURE_RIGHT, onKey, KEY_UP, KEY_DOWN, KEY_SELECT, KEY_EVENT_CLICK, onDigitalCrown, KEY_HOME } from '@zos/interaction'
+import { getText } from '@zos/i18n'
+import { createWidget, widget, prop, event, getTextLayout } from '@zos/ui'
+import { onKey, KEY_UP, KEY_DOWN, KEY_SELECT, KEY_EVENT_CLICK, onDigitalCrown, KEY_HOME } from '@zos/interaction'
 import { Vibrator, VIBRATOR_SCENE_SHORT_STRONG } from '@zos/sensor'
 import { LocalStorage } from '@zos/storage'
+import { setScrollMode, swipeToIndex, SCROLL_ANIMATION_NONE, SCROLL_MODE_SWIPER_HORIZONTAL } from '@zos/page'
+import { Scrolling, SCROLL_MODE_HORIZONTAL } from '../libs/scrolling'
 
 const globalData = getApp()._options.globalData;
 const calc = globalData.calc;
@@ -21,8 +24,7 @@ export class UI {
         const localStorage = new LocalStorage();
         const storage = JSON.parse(localStorage.getItem('calc', '{}'));
         this.storage = {
-            pos_x: this.params.keyboard.switches[2],
-            switch_select: 2,
+            pos_x: this.params.keyboard.pos_x,
             expression: '',
             result: '',
             currentInput: '',
@@ -33,7 +35,7 @@ export class UI {
         calc.expression = this.storage.expression;
         calc.result = this.storage.result;
         calc.currentInput = this.storage.currentInput;
-        calc.replacement =  this.storage.replacement;
+        calc.replacement = this.storage.replacement;
         calc.memory = this.storage.memory;
     }
 
@@ -63,72 +65,66 @@ export class UI {
     }
 
     formatExpression(expression) {
-        return expression.replace(/\*/g, "×").replace(/\//g, "÷").replace(/%/g, "mod");;
+        return expression.replace(/\*/g, "×").replace(/\//g, "÷").replace(/%/g, "mod");
     }
 
     showEdit() {
-        this.showText(this.edit, calc.result !== '' ? calc.result : calc.currentInput, this.params.display.edit);
+        this.showText(this.edit, calc.result !== "" ? calc.result : calc.currentInput, this.params.display.edit);
         this.showText(this.exp, this.formatExpression(calc.expression), this.params.display.exp);
         this.showText(this.memory, calc.memory, this.params.display.memory);
-
+        const text = calc.memory !== "" ? getText("memory") : "";
+        this.hint.setProperty(prop.TEXT, text);
     }
 
     displayShow() {
-        createWidget(widget.STROKE_RECT, this.params.display.rect.style);
-        this.memory = createWidget(widget.TEXT, this.params.display.memory.style);
-        this.edit = createWidget(widget.TEXT, this.params.display.edit.style);
-        this.exp = createWidget(widget.TEXT, this.params.display.exp.style);
+        const container = createWidget(widget.VIEW_CONTAINER, {
+            scroll_enable: false,
+            ...this.params.display.container
+        });
+        container.createWidget(widget.STROKE_RECT, this.params.display.rect.style);
+        this.hint = container.createWidget(widget.TEXT, this.params.display.hint);
+        this.memory = container.createWidget(widget.TEXT, this.params.display.memory.style);
+        this.edit = container.createWidget(widget.TEXT, this.params.display.edit.style);
+        this.exp = container.createWidget(widget.TEXT, this.params.display.exp.style);
         this.showEdit();
     }
 
-    keyboardShift(shift) {
-        const select = this.storage.switch_select + shift;
-        if (select < 0 || select >= this.params.keyboard.switches.length) return;
-        this.storage.switch_select = select;
-        this.to_x = this.params.keyboard.switches[select];
-        this.sign = this.storage.pos_x < this.to_x ? 1 : -1;
-        if (!this.interval) {
-            this.interval = setInterval(() => {
-                this.storage.pos_x += this.sign * this.params.keyboard.switch_speed;
-                if (Math.abs(this.storage.pos_x + this.sign * this.params.keyboard.switch_speed - this.to_x) < this.params.keyboard.switch_speed) {
-                    this.storage.pos_x = this.to_x;
-                }
-                this.container.setProperty(prop.MORE, {
-                    pos_x: this.storage.pos_x,
-                    pos_y: 0,
-                });
-                if (this.storage.pos_x == this.to_x) {
-                    clearInterval(this.interval);
-                    this.interval = null;
-                }
-            }, 20);
-        }
-    }
-
     keyboardShow() {
-        onGesture({
-            callback: (event) => {
-                if (event === GESTURE_LEFT) {
-                    this.keyboardShift(1);
-                }
-                if (event === GESTURE_RIGHT) {
-                    this.keyboardShift(-1);
-                }
-                return true
+
+        // Рассчитываем ширину первого ряда клавиш клавиатуры
+        const xIndent = Math.floor(this.params.keyboard.s - this.params.keyboard.indent / 2);
+        let keyboardWidth = 2 * xIndent;
+        for (const key of this.params.keyboard.keys[0]) {
+            if (key.hasOwnProperty('indent')) {
+                keyboardWidth += this.params.keyboard.indent * key.indent;
+            } else {
+                keyboardWidth += this.params.keyboard.s * (key.cols ?? 1);
+            }
+        }
+
+        const scrolling = new Scrolling({
+            mode: SCROLL_MODE_HORIZONTAL,
+            step_x: this.params.keyboard.indent,
+            scroll_complete_func: (info) => { this.storage.pos_x = info.x },
+            container: {
+                y: this.params.keyboard.y,
+                w: keyboardWidth,
+                pos_x: this.storage.pos_x,
             },
         });
 
         onKey({
             callback: (key, keyEvent) => {
                 if (keyEvent === KEY_EVENT_CLICK) {
+                    if (key === KEY_SELECT || key == KEY_SHORTCUT) {
+                        this.click(() => calc.calculate());
+                        return true;
+                    }
                     if (key === KEY_UP) {
-                        this.keyboardShift(-1);
+                        this.click(() => calc.enterOperation("+"));
                     }
                     if (key === KEY_DOWN) {
-                        this.keyboardShift(1);
-                    }
-                    if (key === KEY_SELECT) {
-                        this.click(() => calc.calculate());
+                        this.click(() => calc.enterOperation("-"));
                     }
                 }
                 return false;
@@ -138,58 +134,19 @@ export class UI {
         onDigitalCrown({
             callback: (key, degree) => {
                 if (key === KEY_HOME) {
-                    if (degree > 0) {
-                        this.keyboardShift(-1);
+                    if (Math.sign(degree) > 0) {
+                        this.click(() => calc.enterOperation("+"));
                     }
-                    if (degree < 0) {
-                        this.keyboardShift(1);
+                    if (Math.sign(degree) < 0) {
+                        this.click(() => calc.enterOperation("-"));
                     }
                 }
             },
         });
 
-
-        /*
-        // Здесь были кнопки для прокрутки клавиатуры...
-        const w = this.params.keyboard.s + this.params.keyboard.indent;
-        let y = this.params.keyboard.y - this.params.keyboard.s;
-        createWidget(widget.BUTTON, {
-            x: 0,
-            y: y,
-            w: w,
-            h: this.params.keyboard.s,
-            normal_color: 0x004040,
-            press_color: 0x008080,
-            text_size: 36,
-            radius: 20,
-            text: '  >',
-            click_func: () => this.keyboardShift(-1),
-        });
-        createWidget(widget.BUTTON, {
-            x: 480 - w,
-            y: y,
-            w: w,
-            h: this.params.keyboard.s,
-            normal_color: 0x004040,
-            press_color: 0x008080,
-            text_size: 36,
-            radius: 20,
-            text: '<  ',
-            click_func: () => this.keyboardShift(1),
-        });/**/
-
-        this.container = createWidget(widget.VIEW_CONTAINER, {
-            x: 0,
-            y: this.params.keyboard.y,
-            w: this.params.keyboard.w,
-            h: this.params.keyboard.h,
-            pos_x: this.storage.pos_x,
-            pos_y: 0,
-            scroll_enable: 0,
-        });
         let y = 0;
         for (const row of this.params.keyboard.keys) {
-            let x = this.params.keyboard.indent;
+            let x = xIndent;
             for (const key of row) {
                 let w = this.params.keyboard.s;
                 if (key) {
@@ -198,7 +155,7 @@ export class UI {
                     } else {
                         w *= key.cols ?? 1;
                         const h = this.params.keyboard.s * (key.rows ?? 1);
-                        this.container.createWidget(widget.BUTTON, {
+                        const button = scrolling.container.createWidget(widget.BUTTON, {
                             x: x + 2,
                             y: y + 2,
                             w: w - 4,
@@ -211,12 +168,14 @@ export class UI {
                             click_func: () => this.click(key.click ?? null),
                             longpress_func: () => this.click(key.longpress ?? null),
                         });
+                        scrolling.setScrolling(button);
                     }
                 }
                 x += w;
             }
             y += this.params.keyboard.s;
         }
+
     }
 
     click(callback) {
@@ -231,8 +190,5 @@ export class UI {
         this.vibrator.setMode(VIBRATOR_SCENE_SHORT_STRONG);
         this.vibrator.start();
     }
-
-
-
 
 }

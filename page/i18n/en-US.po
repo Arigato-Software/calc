@@ -1,2 +1,11 @@
-msgid "example"
-msgstr "This is an example in device"
+msgid "help"
+msgstr "Calculator v1.0.2\n© Arigato Software\n2024"
+
+msgid "memory"
+msgstr "M"
+
+msgid "error"
+msgstr "Error"
+
+msgid "overflow"
+msgstr "Overflow"

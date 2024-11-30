@@ -1,3 +1,5 @@
+import { getText } from '@zos/i18n'
+
 export class Calc {
     constructor() {
         this.expression = ""; // Строка для отображения выражения
@@ -20,7 +22,7 @@ export class Calc {
 
     getStringValue(value) {
         if (Math.abs(value) > 999999999999999) {
-            return 'Overflow';
+            return getText('overflow');
         }
         
         // Округляем результат до 14 значащих цифр
@@ -192,7 +194,7 @@ export class Calc {
     sqrt() {
         const value = this.getCurrentInput();
         if (value === "") return;
-        const sqrtValue = value >= 0 ? this.getStringValue(Math.sqrt(value)) : "Error";
+        const sqrtValue = value >= 0 ? this.getStringValue(Math.sqrt(value)) : getText("error");
         if (this.currentInput) {
             this.replaceValue(sqrtValue);
         } else {
@@ -216,7 +218,7 @@ export class Calc {
     reciprocal() {
         const value = this.getCurrentInput();
         if (value === "") return;
-        const reciprocalValue = value != 0 ? this.getStringValue(1 / value) : "Error";
+        const reciprocalValue = value != 0 ? this.getStringValue(1 / value) : getText("error");
         if (this.currentInput) {
             this.replaceValue(reciprocalValue);
         } else {
@@ -292,7 +294,7 @@ export class Calc {
                 this.result = this.getStringValue(this.evaluateExpression(this.expression));
             }
         } catch (error) {
-            this.result = "Error";
+            this.result = getText("error");
         }
         this.currentInput = "";
         this.replacement = false;

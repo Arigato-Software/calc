@@ -1,5 +1,8 @@
-import { px } from "@zos/utils";
-import { align } from '@zos/ui';
+import { getText } from '@zos/i18n'
+import { px } from "@zos/utils"
+import { align } from '@zos/ui'
+import { exit } from '@zos/router'
+import { showToast } from '@zos/interaction'
 
 const globalData = getApp()._options.globalData;
 const calc = globalData.calc;
@@ -7,6 +10,23 @@ const calc = globalData.calc;
 // Клавиатура состоит из 3-х блоков клавиш
 export const params = {
   display: {
+    container: {
+      x: 0,
+      y: 0,
+      w: px(480),
+      h: px(140),
+    },
+    hint: {
+      text: '',
+      x: px(180),
+      y: px(5),
+      w: px(480 - 180 * 2),
+      h: px(20),
+      color: 0xa0b0c0,
+      text_size: px(20),
+      align_h: align.CENTER_H,
+      align_v: align.CENTER_V,
+    },
     memory: {
       style: {
         text: '',
@@ -69,17 +89,25 @@ export const params = {
   },
   keyboard: {
     y: px(150),
-    w: px(480),
-    h: px(330),
     s: px(80),
-	text_size: px(36),
-	radius: px(20),
+    pos_x: -px(224),
+    text_size: px(36),
+    radius: px(20),
     indent: px(16),
-    switches: [px(56), 0, -px(72), -px(144), -px(224), -px(280)],
-    switch_speed: px(20),
     keys: [
 
       [
+        {
+          text: 'OFF',
+          color: 0x404040,
+          text_size: px(28),
+          click: () => exit(),
+        },
+
+        {
+          indent: 1,
+        },
+
         {
           text: 'C',
           color: 0x600000,
@@ -135,6 +163,16 @@ export const params = {
       ],
       [
         {
+          text: '?',
+          color: 0x404040,
+          click: () => showToast({content: getText("help")}),
+        },
+
+        {
+          indent: 1,
+        },
+
+        {
           text: 'MR',
           color: 0x606060,
           click: () => calc.memoryRecall(),
@@ -187,6 +225,12 @@ export const params = {
         },
       ],
       [
+        null,
+
+        {
+          indent: 1,
+        },
+
         {
           text: 'M-',
           color: 0x606060,
@@ -241,6 +285,12 @@ export const params = {
 
       ],
       [
+        null,
+
+        {
+          indent: 1,
+        },
+
         {
           text: 'MC',
           cols: 2,
