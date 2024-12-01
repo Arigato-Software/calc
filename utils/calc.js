@@ -4,7 +4,7 @@ export class Calc {
     constructor() {
         this.expression = ""; // Строка для отображения выражения
         this.result = "";     // Строка для отображения результата
-        this.currentInput = ""; // Текущее вводимое число
+        this.currentInput = "0"; // Текущее вводимое число
         this.replacement = false; // Флаг замены вводимого значения после выполнения унарной операции
         this.memory = "";    // Память калькулятора
     }
