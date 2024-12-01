@@ -26,7 +26,7 @@ export class UI {
             pos_x: this.params.keyboard.pos_x,
             expression: '',
             result: '',
-            currentInput: '',
+            currentInput: '0',
             replacement: false,
             memory: '',
             ...storage
