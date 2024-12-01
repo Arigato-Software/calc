@@ -165,7 +165,7 @@ export const params = {
         {
           text: '?',
           color: 0x404040,
-          click: () => showToast({content: getText("help")}),
+          click: () => showToast({ content: getText("help") }),
         },
 
         {

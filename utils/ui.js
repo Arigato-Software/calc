@@ -1,9 +1,8 @@
 import { getText } from '@zos/i18n'
-import { createWidget, widget, prop, event, getTextLayout } from '@zos/ui'
-import { onKey, KEY_UP, KEY_DOWN, KEY_SELECT, KEY_EVENT_CLICK, onDigitalCrown, KEY_HOME } from '@zos/interaction'
+import { createWidget, widget, prop, getTextLayout } from '@zos/ui'
+import { onKey, KEY_UP, KEY_DOWN, KEY_SELECT, KEY_SHORTCUT, KEY_EVENT_CLICK, onDigitalCrown, KEY_HOME } from '@zos/interaction'
 import { Vibrator, VIBRATOR_SCENE_SHORT_STRONG } from '@zos/sensor'
 import { LocalStorage } from '@zos/storage'
-import { setScrollMode, swipeToIndex, SCROLL_ANIMATION_NONE, SCROLL_MODE_SWIPER_HORIZONTAL } from '@zos/page'
 import { Scrolling, SCROLL_MODE_HORIZONTAL } from '../libs/scrolling'
 
 const globalData = getApp()._options.globalData;
@@ -116,7 +115,7 @@ export class UI {
         onKey({
             callback: (key, keyEvent) => {
                 if (keyEvent === KEY_EVENT_CLICK) {
-                    if (key === KEY_SELECT || key == KEY_SHORTCUT) {
+                    if (key === KEY_SELECT || key === KEY_SHORTCUT) {
                         this.click(() => calc.calculate());
                         return true;
                     }
