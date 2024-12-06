@@ -29,6 +29,8 @@ export class UI {
             currentInput: '0',
             replacement: false,
             memory: '',
+            input_error: false,
+            memory_error: false,
             ...storage
         }
         calc.expression = this.storage.expression;
@@ -36,6 +38,8 @@ export class UI {
         calc.currentInput = this.storage.currentInput;
         calc.replacement = this.storage.replacement;
         calc.memory = this.storage.memory;
+        calc.input_error = this.storage.input_error;
+        calc.memory_error = this.storage.memory_error;
     }
 
     save() {
@@ -44,6 +48,8 @@ export class UI {
         this.storage.currentInput = calc.currentInput;
         this.storage.replacement = calc.replacement;
         this.storage.memory = calc.memory;
+        this.storage.input_error = calc.input_error;
+        this.storage.memory_error = calc.memory_error;
         const localStorage = new LocalStorage();
         localStorage.setItem('calc', JSON.stringify(this.storage));
     }
@@ -73,6 +79,8 @@ export class UI {
         this.showText(this.memory, calc.memory, this.params.display.memory);
         const text = calc.memory !== "" ? getText("memory") : "";
         this.hint.setProperty(prop.TEXT, text);
+        this.edit.setProperty(prop.MORE, {color: calc.input_error ? this.params.display.error : this.params.display.edit.style.color});
+        this.memory.setProperty(prop.MORE, {color: calc.memory_error ? this.params.display.error : this.params.display.memory.style.color});
     }
 
     displayShow() {

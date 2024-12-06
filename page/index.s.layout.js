@@ -86,6 +86,7 @@ export const params = {
       size_min: px(12),
       w: px(390 - 27 * 2),
     },
+    error: 0xff4040,
   },
   keyboard: {
     y: px(182),
@@ -173,9 +174,9 @@ export const params = {
         },
 
         {
-          text: 'MR',
+          text: 'MC',
           color: 0x606060,
-          click: () => calc.memoryRecall(),
+          click: () => calc.memoryClear(),
         },
         {
           text: 'MS',
@@ -292,10 +293,10 @@ export const params = {
         },
 
         {
-          text: 'MC',
+          text: 'MR',
           cols: 2,
           color: 0x606060,
-          click: () => calc.memoryClear(),
+          click: () => calc.memoryRecall(),
         },
 
         {

@@ -1,5 +1,5 @@
 msgid "help"
-msgstr "Calculator v1.0.3\n© Arigato Software\n2024"
+msgstr "Calculator v1.0.4\n© Arigato Software\n2024"
 
 msgid "memory"
 msgstr "M"
